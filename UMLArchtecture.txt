@@ -1,0 +1,344 @@
+@startuml
+class EscapeBOB [[java:com.projectBOB.EscapeBOB]] {
+	-batch: SpriteBatch
+	-engine: Engine
+	-WORLD_WIDTH: float
+	-WORLD_HEIGHT: float
+	-viewport: Viewport
+	-camera: OrthographicCamera
+	-map: TiledMap
+	-bobWalkTexture: Texture
+	-manWalkTexture: Texture
+	+create(): void
+	-createLightSwitch(): Entity
+	-createPlayer(): Entity
+	-createBob(): Entity
+	+render(): void
+	+dispose(): void
+	+resize(width: int, height: int): void
+}
+class ApplicationAdapter {
+}
+ApplicationAdapter <|-- EscapeBOB
+class VelocityComponent [[java:com.projectBOB.Components.VelocityComponent]] {
+	+dx: float
+	+dy: float
+}
+interface Component {
+}
+Component <|.. VelocityComponent
+class ColliderComponent [[java:com.projectBOB.Components.ColliderComponent]] {
+	+widthRad: float
+	+heightRad: float
+	+hypo: double
+}
+interface Component {
+}
+Component <|.. ColliderComponent
+class TimerComponent [[java:com.projectBOB.Components.TimerComponent]] {
+	+time: float
+	+MainTimerDuration: float
+	+isrunning(): boolean
+}
+interface Component {
+}
+Component <|.. TimerComponent
+class LightChangeTimeComponent [[java:com.projectBOB.Components.LightChangeTimeComponent]] {
+	+activeTimer: float
+	+activeDuration: float
+	+isActive(): boolean
+}
+interface Component {
+}
+Component <|.. LightChangeTimeComponent
+class ConsumableComponent [[java:com.projectBOB.Components.ConsumableComponent]] {
+}
+interface Component {
+}
+Component <|.. ConsumableComponent
+class BobControlComponent [[java:com.projectBOB.Components.BobControlComponent]] {
+	+isChasing: boolean
+}
+interface Component {
+}
+Component <|.. BobControlComponent
+class AnimationComponent [[java:com.projectBOB.Components.AnimationComponent]] {
+	+animations: HashMap<String,Animation<TextureRegion>>
+	+stateTimer: float
+}
+interface Component {
+}
+Component <|.. AnimationComponent
+class ScoreKeeperComponent [[java:com.projectBOB.Components.ScoreKeeperComponent]] {
+	+score: int
+	+numEvents: int
+}
+interface Component {
+}
+Component <|.. ScoreKeeperComponent
+class PlayerControlComponent [[java:com.projectBOB.Components.PlayerControlComponent]] {
+}
+interface Component {
+}
+Component <|.. PlayerControlComponent
+class StateComponent [[java:com.projectBOB.Components.StateComponent]] {
+	+currentState: String
+	+stateChanged: boolean
+	+set(newState: String): void
+}
+interface Component {
+}
+Component <|.. StateComponent
+class PositionComponent [[java:com.projectBOB.Components.PositionComponent]] {
+	+x: float
+	+y: float
+}
+interface Component {
+}
+Component <|.. PositionComponent
+class CollisionComponent [[java:com.projectBOB.Components.CollisionComponent]] {
+	+collidedWith: Entity
+}
+interface Component {
+}
+Component <|.. CollisionComponent
+class RenderComponent [[java:com.projectBOB.Components.RenderComponent]] {
+	+texture: TextureRegion
+	+size: float
+}
+interface Component {
+}
+Component <|.. RenderComponent
+class EngineBuilder [[java:com.projectBOB.Creation.EngineBuilder]] {
+	+{static} create(batch: SpriteBatch, viewport: Viewport, camera: OrthographicCamera, map: TiledMap): Engine
+}
+class AnimationUtils [[java:com.projectBOB.Creation.AnimationUtils]] {
+	+{static} createAnimationFromSheet(sheet: TextureRegion, frameCols: int, frameRows: int, frameDuration: float): Animation<TextureRegion>
+}
+class PlayerInputSystem [[java:com.projectBOB.Systems.Input.PlayerInputSystem]] {
+	+PlayerInputSystem(PRIORITY: int)
+	#processEntity(entity: Entity, deltaTime: float): void
+}
+class VelocityComponent {
+}
+PlayerInputSystem -->  VelocityComponent : velMap
+class IteratingSystem {
+}
+IteratingSystem <|-- PlayerInputSystem
+class CollisionSystem [[java:com.projectBOB.Systems.Physics.CollisionSystem]] {
+	-players: ImmutableArray<Entity>
+	-consumables: ImmutableArray<Entity>
+	-bobs: ImmutableArray<Entity>
+	+CollisionSystem()
+	+addedToEngine(engine: Engine): void
+	+update(deltaTime: float): void
+	-collides(entityA: Entity, entityB: Entity): boolean
+}
+class PositionComponent {
+}
+CollisionSystem -->  PositionComponent : posMap
+class ColliderComponent {
+}
+CollisionSystem -->  ColliderComponent : colMap
+class CollisionComponent {
+}
+CollisionSystem --> CollisionComponent : collisionMap
+class EntitySystem {
+}
+EntitySystem <|-- CollisionSystem
+class MovementSystem [[java:com.projectBOB.Systems.Physics.MovementSystem]] {
+	-wallLayer: TiledMapTileLayer
+	+MovementSystem(PRIORITY: int, tiledMap: TiledMap)
+	#processEntity(entity: Entity, deltaTime: float): void
+}
+class PositionComponent {
+}
+MovementSystem --> PositionComponent : posMap
+class VelocityComponent {
+}
+MovementSystem --> VelocityComponent : velMap
+class ColliderComponent {
+}
+MovementSystem --> ColliderComponent : colMap
+class IteratingSystem {
+}
+IteratingSystem <|-- MovementSystem
+class AnimationSystem [[java:com.projectBOB.Systems.Rendering.AnimationSystem]] {
+	+AnimationSystem(PRIORITY: int)
+	#processEntity(entity: Entity, deltaTime: float): void
+}
+class AnimationComponent {
+}
+AnimationSystem --> AnimationComponent : animMap
+class RenderComponent {
+}
+AnimationSystem --> RenderComponent : renderMap
+class StateComponent {
+}
+AnimationSystem --> StateComponent : stateMap
+class IteratingSystem {
+}
+IteratingSystem <|-- AnimationSystem
+class RenderSystem [[java:com.projectBOB.Systems.Rendering.RenderSystem]] {
+	-batch: SpriteBatch
+	-viewport: Viewport
+	-font: BitmapFont
+	-glyphLayout: GlyphLayout
+	-bobs: ImmutableArray<Entity>
+	+RenderSystem(batch: SpriteBatch, PRIORITY: int, viewport: Viewport, camera: OrthographicCamera)
+	#processEntity(entity: Entity, deltaTime: float): void
+	+update(deltaTime: float): void
+	+addedToEngine(engine: Engine): void
+	+dispose(): void
+}
+class PositionComponent {
+}
+RenderSystem --> PositionComponent : posMap
+class RenderComponent {
+}
+RenderSystem --> RenderComponent : renderMap
+class MovementSystem {
+}
+RenderSystem --> MovementSystem : movementSystem
+class GamePauseSystem {
+}
+RenderSystem --> GamePauseSystem : gamepausesystem
+class IteratingSystem {
+}
+IteratingSystem <|-- RenderSystem
+class MapRenderSystem [[java:com.projectBOB.Systems.Rendering.MapRenderSystem]] {
+	-camera: OrthographicCamera
+	-tiledMap: TiledMap
+	-renderer: OrthogonalTiledMapRenderer
+	+MapRenderSystem(PRIORITY: int, tiledMap: TiledMap, camera: OrthographicCamera)
+	+update(deltaTime: float): void
+	#processEntity(entity: Entity, deltaTime: float): void
+	+dispose(): void
+}
+class IteratingSystem {
+}
+IteratingSystem <|-- MapRenderSystem
+class PlayerStateSystem [[java:com.projectBOB.Systems.core.PlayerStateSystem]] {
+	+PlayerStateSystem(priority: int)
+	#processEntity(entity: Entity, deltaTime: float): void
+}
+class VelocityComponent {
+}
+PlayerStateSystem --> VelocityComponent : velMap
+class StateComponent {
+}
+PlayerStateSystem --> StateComponent : stateMap
+class IteratingSystem {
+}
+IteratingSystem <|-- PlayerStateSystem
+class BobChaseFleeSystem [[java:com.projectBOB.Systems.gameplay.BobChaseFleeSystem]] {
+	+BobChaseFleeSystem(PRIORITY: int)
+	#processEntity(entity: Entity, deltaTime: float): void
+}
+class BobControlComponent {
+}
+BobChaseFleeSystem --> BobControlComponent : bobCtr
+class ScoreKeeperComponent {
+}
+BobChaseFleeSystem --> ScoreKeeperComponent : scoreMap
+class IteratingSystem {
+}
+IteratingSystem <|-- BobChaseFleeSystem
+class LightSwitchVisualOnTimerSystem [[java:com.projectBOB.Systems.gameplay.LightSwitchVisualOnTimerSystem]] {
+	-bobs: ImmutableArray<Entity>
+	-activeTexture: TextureRegion
+	-inactiveTexture: TextureRegion
+	+LightSwitchVisualOnTimerSystem(PRIORITY: int)
+	#processEntity(entity: Entity, deltaTime: float): void
+}
+class LightChangeTimeComponent {
+}
+LightSwitchVisualOnTimerSystem --> LightChangeTimeComponent : timerMap
+class RenderComponent {
+}
+LightSwitchVisualOnTimerSystem --> RenderComponent : renderMap
+class BobControlComponent {
+}
+LightSwitchVisualOnTimerSystem --> BobControlComponent : bobMap
+class ScoreKeeperComponent {
+}
+LightSwitchVisualOnTimerSystem --> ScoreKeeperComponent : scoreMap
+class IteratingSystem {
+}
+IteratingSystem <|-- LightSwitchVisualOnTimerSystem
+class TimerSystem [[java:com.projectBOB.Systems.gameplay.TimerSystem]] {
+	+TimerSystem(PRIORITY: int)
+	#processEntity(entity: Entity, deltaTime: float): void
+}
+class TimerComponent {
+}
+TimerSystem --> TimerComponent : maintimerMap
+class IteratingSystem {
+}
+IteratingSystem <|-- TimerSystem
+class DetectExitSystem [[java:com.projectBOB.Systems.gameplay.DetectExitSystem]] {
+	+DetectExitSystem(PRIORITY: int, map: TiledMap)
+	#processEntity(entity: Entity, deltaTime: float): void
+}
+class PositionComponent {
+}
+DetectExitSystem --> PositionComponent : exitTileCoords
+class PositionComponent {
+}
+DetectExitSystem --> PositionComponent : posMap
+class TimerComponent {
+}
+DetectExitSystem --> TimerComponent : timeMap
+class IteratingSystem {
+}
+IteratingSystem <|-- DetectExitSystem
+class LightSwitchSystem [[java:com.projectBOB.Systems.gameplay.LightSwitchSystem]] {
+	-bobs: ImmutableArray<Entity>
+	+LightSwitchSystem(PRIORITY: int)
+	#processEntity(entity: Entity, deltaTime: float): void
+}
+class RenderComponent {
+}
+LightSwitchSystem --> RenderComponent : renderMap
+class LightChangeTimeComponent {
+}
+LightSwitchSystem --> LightChangeTimeComponent : timeMap
+class BobControlComponent {
+}
+LightSwitchSystem --> BobControlComponent : bobMap
+class ScoreKeeperComponent {
+}
+LightSwitchSystem --> ScoreKeeperComponent : scoreMap
+class IteratingSystem {
+}
+IteratingSystem <|-- LightSwitchSystem
+class BobCollisionSystem [[java:com.projectBOB.Systems.gameplay.BobCollisionSystem]] {
+	-wallLayer: TiledMapTileLayer
+	+BobCollisionSystem(PRIORITY: int, tiledMap: TiledMap)
+	#processEntity(entity: Entity, deltaTime: float): void
+	-teleportRandom(entity: Entity): void
+}
+class VelocityComponent {
+}
+BobCollisionSystem --> VelocityComponent : velMap
+class ScoreKeeperComponent {
+}
+BobCollisionSystem --> ScoreKeeperComponent : scoreMap
+class PositionComponent {
+}
+BobCollisionSystem --> PositionComponent : posMap
+class BobControlComponent {
+}
+BobCollisionSystem --> BobControlComponent : bobCtr
+class IteratingSystem {
+}
+IteratingSystem <|-- BobCollisionSystem
+class GamePauseSystem [[java:com.projectBOB.Systems.gameplay.GamePauseSystem]] {
+	-isPaused: boolean
+	+GamePauseSystem(PRIORITY: int)
+	+update(deltaTime: float): void
+}
+class EntitySystem {
+}
+EntitySystem <|-- GamePauseSystem
+@enduml
